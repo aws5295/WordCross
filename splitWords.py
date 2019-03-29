@@ -1,4 +1,5 @@
 import os
+import pickle
 
 class Node(object):
     def __init__(self, char, parent):
@@ -20,6 +21,14 @@ class Node(object):
             reversed_word.append(current_node.character)
         
         return ''.join(reversed(reversed_word))
+
+def serialize_to_file(node, file_path):
+    with open(file_path, 'wb+') as file:
+        pickle.dump(node, file)
+
+def serialize_from_file(file_path):
+    with open(file_path) as file:
+        return pickle.load(file)
 
 # TODO: Add DOC String
 def build_tree(file_path):
@@ -71,7 +80,14 @@ if __name__ == "__main__":
     
     split_file(word_file, output_dir) """
 
+    import string
     current_dir = os.path.dirname(__file__)
-    word_file = os.path.join(current_dir, "Textfiles/T-words.txt")
-    
-    node = build_tree(word_file)
+
+    for char in string.ascii_uppercase:
+        word_file_name = "Textfiles/" + str(char) + "-words.txt"
+        data_file_name = "DataFiles/" + str(char) + "-data.node.bin"
+        word_file = os.path.join(current_dir, word_file_name)
+        data_file = os.path.join(current_dir, data_file_name)
+
+        node = build_tree(word_file)
+        serialize_to_file(node, data_file)
