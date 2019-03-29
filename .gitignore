@@ -31,3 +31,6 @@ tmp/**
 test-results.xml
 !build/
 .vscode/launch.json
+DataFiles/*
+Textfiles/*
+!Textfiles/master-list.txt

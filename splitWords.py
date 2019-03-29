@@ -1,5 +1,6 @@
 import os
 import pickle
+import string
 
 class Node(object):
     def __init__(self, char, parent):
@@ -26,8 +27,8 @@ def serialize_to_file(node, file_path):
     with open(file_path, 'wb+') as file:
         pickle.dump(node, file)
 
-def serialize_from_file(file_path):
-    with open(file_path) as file:
+def deserialize_from_file(file_path):
+    with open(file_path, 'rb') as file:
         return pickle.load(file)
 
 # TODO: Add DOC String
@@ -57,6 +58,14 @@ def build_tree(file_path):
     return root_node
 
 # TODO: Add DOC String
+def get_words_in_tree(root_node: Node, words=[]):
+    if (root_node.is_word):
+        words.append(root_node.get_word())
+
+    for child_node in root_node.children:
+        get_words_in_tree(child_node, words)
+
+# TODO: Add DOC String
 def split_file(file_name, output_dir):
     words = [line.strip() for line in open(file_name)]
 
@@ -73,21 +82,41 @@ def split_file(file_name, output_dir):
         with open(output_file_path, 'w+') as file:
             file.writelines("%s\n" % word for word in grouped_words[letter])
 
+# TODO: Add DOC String
+def get_tree_for_letter(starting_letter):
+    if ((len(starting_letter) != 1) or (starting_letter.upper() not in string.ascii_uppercase)):
+        raise ValueError("Input must be a single letter from [A-Z]")
+
+    base_directory = os.path.dirname(__file__)
+
+    # If data file exists, return it
+    expected_data_file_name = "DataFiles/" + str(starting_letter) + "-data.node.bin"
+    expected_data_file_path = os.path.join(base_directory, expected_data_file_name)
+    if os.path.isfile(expected_data_file_path):
+        return deserialize_from_file(expected_data_file_path)
+
+    # If word list exists for letter, build the data file and return node
+    expected_word_list_name = "TextFiles/" + str(starting_letter) + "-words.txt"
+    expected_word_list_path = os.path.join(base_directory, expected_word_list_name)
+    if os.path.isfile(expected_word_list_path):
+        node = build_tree(expected_word_list_path)
+        serialize_to_file(node, expected_data_file_path)
+        return node
+
+    # If the master list does not exist, cannot continue
+    expected_master_word_list_name = "TextFiles/master-list.txt"
+    expected_master_word_list_path = os.path.join(base_directory, expected_master_word_list_name)
+    if not os.path.isfile(expected_master_word_list_path):
+        raise FileNotFoundError("Expected to find 'masterlist.txt' in local 'TextFiles' directory!")
+
+    # If the master list does exist, split it into individual word lists
+    output_dir = os.path.join(base_directory, "TextFiles")
+    split_file(expected_master_word_list_path, output_dir)
+    return get_tree_for_letter(starting_letter)
+
 if __name__ == "__main__":
-    """     current_dir = os.path.dirname(__file__)
-    word_file = os.path.join(current_dir, "Textfiles/word-list.txt")
-    output_dir = os.path.join(current_dir, "Textfiles")
-    
-    split_file(word_file, output_dir) """
-
-    import string
-    current_dir = os.path.dirname(__file__)
-
-    for char in string.ascii_uppercase:
-        word_file_name = "Textfiles/" + str(char) + "-words.txt"
-        data_file_name = "DataFiles/" + str(char) + "-data.node.bin"
-        word_file = os.path.join(current_dir, word_file_name)
-        data_file = os.path.join(current_dir, data_file_name)
-
-        node = build_tree(word_file)
-        serialize_to_file(node, data_file)
+    tree = get_tree_for_letter("W")
+    words_in_tree = []
+    get_words_in_tree(tree, words_in_tree)
+    print(words_in_tree[:10]) # print first 10 words
+    print(len(words_in_tree))
