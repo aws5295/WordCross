@@ -58,14 +58,6 @@ def build_tree(file_path):
     return root_node
 
 # TODO: Add DOC String
-def get_words_in_tree(root_node: Node, words=[]):
-    if (root_node.is_word):
-        words.append(root_node.get_word())
-
-    for child_node in root_node.children:
-        get_words_in_tree(child_node, words)
-
-# TODO: Add DOC String
 def split_file(file_name, output_dir):
     words = [line.strip() for line in open(file_name)]
 
@@ -81,6 +73,35 @@ def split_file(file_name, output_dir):
         
         with open(output_file_path, 'w+') as file:
             file.writelines("%s\n" % word for word in grouped_words[letter])
+
+# TODO: Document, Time the function execution
+def solve(possible_letters):
+    result = []
+    # Load all Trees from disk so we can time the speed of the implementation
+    trees = [get_tree_for_letter(letter) for letter in set(possible_letters)]
+
+    for tree in trees:
+        get_possible_words(tree, possible_letters, result)
+    return sorted(result, key=lambda r: (len(r), r.upper()))
+
+# TODO: Add DOC String
+def get_possible_words(root: Node, possible_letters, word_list=set()):
+    if (root.is_word):
+        word_list.append(root.get_word())
+
+    letters = possible_letters[:]
+    letters.remove(root.character)
+    valid_children = [c for c in root.children if c.character in letters]
+    for child in valid_children:
+        get_possible_words(child, letters, word_list)
+
+def print_solution(words):
+    curr_len = 0
+    for word in words:
+        if curr_len != len(word):
+            print(str(len(word)) + "-Letter Words:")
+            curr_len = len(word)
+        print(word)
 
 # TODO: Add DOC String
 def get_tree_for_letter(starting_letter):
@@ -115,8 +136,5 @@ def get_tree_for_letter(starting_letter):
     return get_tree_for_letter(starting_letter)
 
 if __name__ == "__main__":
-    tree = get_tree_for_letter("W")
-    words_in_tree = []
-    get_words_in_tree(tree, words_in_tree)
-    print(words_in_tree[:10]) # print first 10 words
-    print(len(words_in_tree))
+    answers = solve(['W', 'O', 'B', 'L', 'L', 'E'])
+    print_solution(answers)
