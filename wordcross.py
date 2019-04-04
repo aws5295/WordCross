@@ -1,6 +1,7 @@
 import os
 import pickle
 import string
+from timeit import default_timer as timer
 
 class Node(object):
     """ Represent a node of a tree or graph.
@@ -180,8 +181,13 @@ def solve(possible_letters):
     # Load all Trees from disk so we can time the speed of the implementation
     trees = [get_tree_for_letter(letter) for letter in set(possible_letters)]
 
+    # Time this
+    start = timer()
     for tree in trees:
         get_possible_words(tree, possible_letters, result)
+    end = timer()
+    print(end - start)
+
     return sorted(result, key=lambda r: (len(r), r.upper()))
 
 def get_possible_words(root: Node, possible_letters, word_list=set()):
@@ -276,4 +282,5 @@ if __name__ == "__main__":
         print(output)
 
     answers = solve(letters)
-    print_solution(answers)
+    #print_solution(answers)
+    print(len(answers))
